@@ -1895,7 +1895,8 @@ var EntityType = (function () {
         return coEquals(v1, v2);
       } else {
         var dataType = dp.dataType; // this will be a complexType when dp is a complexProperty
-        return (v1 === v2 || (dataType && dataType.isDate && v1 && v2 && v1.valueOf() === v2.valueOf()));
+        var normalize = DataType.getComparableFn(dataType);
+        return (v1 === v2 || (normalize && normalize(v1) === normalize(v2)));
       }
     });
     return areEqual;
@@ -2658,8 +2659,8 @@ var DataProperty = (function () {
   ctor.fromJSON = function (json) {
     json.dataType = DataType.fromName(json.dataType);
     // dateTime instances require 'extra' work to deserialize properly.
-    if (json.defaultValue && json.dataType && json.dataType.isDate) {
-      json.defaultValue = new Date(Date.parse(json.defaultValue));
+    if (json.defaultValue && json.dataType) {
+        json.defaultValue = DataType.parseRawValue(json.defaultValue, json.dataType);
     }
 
     if (json.validators) {

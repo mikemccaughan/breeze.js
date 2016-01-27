@@ -2222,24 +2222,16 @@ var EntityManager = (function () {
     if (entity.entityAspect.originalValues[property.name]) return;
     var value = entity.getProperty(property.name);
     if (!value) value = property.dataType.defaultValue;
-    if (property.dataType.isNumeric) {
-      entity.setProperty(property.name, value + 1);
-    } else if (property.dataType.isDate) {
+    var concurrencyValue = DataType.getConcurrencyValue(property.dataType);
+    if (concurrencyValue) {
       // use the current datetime but insure that it
       // is different from previous call.
-      var dt = new Date();
-      var dt2 = new Date();
-      while (dt.getTime() === dt2.getTime()) {
-        dt2 = new Date();
-      }
-      entity.setProperty(property.name, dt2);
-    } else if (property.dataType === DataType.Guid) {
-      entity.setProperty(property.name, __getUuid());
-    } else if (property.dataType === DataType.Binary) {
+      entity.setProperty(property.name, concurrencyValue);
+    } else if (concurrencyValue === null) {
       // best guess - that this is a timestamp column and is computed on the server during save
       // - so no need to set it here.
       return;
-    } else {
+    } else if (concurrencyValue === void 0) {
       // this just leaves DataTypes of Boolean, String and Byte - none of which should be the
       // type for a concurrency column.
       // NOTE: thought about just returning here but would rather be safe for now.
