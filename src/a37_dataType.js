@@ -467,6 +467,35 @@ var DataType = (function () {
     }
     return val;
   }
+    
+  DataType.getConcurrencyValue = function(dataType, currentValue) {
+    if (!dataType) {
+      return undefined;
+    }
+    if (dataType.isNumeric) {
+      return currentValue + 1;
+    } else if (dataType.isDate) {
+      // use the current datetime but insure that it
+      // is different from previous call.
+      var dt = new Date();
+      var dt2 = new Date();
+      while (dt.getTime() === dt2.getTime()) {
+        dt2 = new Date();
+      }
+      return dt2;
+    } else if (dataType === DataType.Guid) {
+      return __getUuid();
+    } else if (dataType === DataType.Binary) {
+      // best guess - that this is a timestamp column and is computed on the server during save
+      // - so no need to set it here.
+      return null;
+    } else {
+      // this just leaves DataTypes of Boolean, String and Byte - none of which should be the
+      // type for a concurrency column.
+      // NOTE: thought about just returning here but would rather be safe for now.
+      return undefined;
+    }
+  }  
 
   DataType.constants = constants;
   // for internal testing only

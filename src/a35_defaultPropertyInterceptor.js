@@ -17,7 +17,8 @@
   }
 
   // exit if no change - extra cruft is because dateTimes don't compare cleanly.
-  if (newValue === oldValue || (dataType && dataType.isDate && newValue && oldValue && newValue.valueOf() === oldValue.valueOf())) {
+  var normalize = dataType && DataType.getComparableFn(dataType);
+  if (newValue === oldValue || (normalize && normalize(newValue) === normalize(oldValue))) {
     return;
   }
 
